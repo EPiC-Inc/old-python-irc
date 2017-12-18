@@ -38,14 +38,14 @@ def readFile(filePath): # Get the file readout and close it
 
 def sendMsg(msg, filePath):
     if msg == 1:
-        fMsg = "A user has joined: "+user
+        fMsg = "A user has joined @ "+time.asctime(time.gmtime())+':'+user
     elif msg == 0:
-        fMsg = "A user has left: "+user
+        fMsg = "A user has left @ "+time.asctime(time.gmtime())+':'+user
     else:
         if ADMIN == 0:
-            fMsg = '['+user+'] '+msg
+            fMsg = '['+user+'@'+time.asctime(time.gmtime())+'] '+msg
         else:
-            fMsg = '[(ADMIN) '+user+' '+str(datetime.now())+'] '+msg
+            fMsg = '[(ADMIN) '+user+'@'+time.asctime(time.gmtime())+'] '+msg
     encMsg = enc(fMsg)
     fObj = open(filePath, 'a')
     fObj.write(encMsg+"\n")
@@ -122,23 +122,26 @@ def enc(code, encryption_num=14815):
 
 def dec(code, encryption_num=14815, digits=5):
     ''' DePolymorphs Polymorphed code '''
-    final = ''
+    try:
+        final = ''
 
-    for i in range(0, len(code), digits):
-        symbol = ''
-        for j in range(digits):
-            symbol += code[i+j]
+        for i in range(0, len(code), digits):
+            symbol = ''
+            for j in range(digits):
+                symbol += code[i+j]
 
-        symbol = int(symbol)
-        symbol_num = symbol - encryption_num
-        if (symbol_num != 31) and (symbol_num != 30):
-            symbol = chr(symbol_num)
-            final += symbol
-        elif symbol_num == 30:
-            final += '\t'
-        else:
-            final += '\n'
-    return final
+            symbol = int(symbol)
+            symbol_num = symbol - encryption_num
+            if (symbol_num != 31) and (symbol_num != 30):
+                symbol = chr(symbol_num)
+                final += symbol
+            elif symbol_num == 30:
+                final += '\t'
+            else:
+                final += '\n'
+        return final
+    except:
+        return "Unable to decode string"
 
 def getRandomNum(digits=5):
     ''' Gets a random polymorphic-compatible number with the specified amount of digits '''
@@ -199,13 +202,16 @@ lastLine = readFile(IRC_FILEPATH)[-1:][0]
 sendMsg(1, IRC_FILEPATH) # Announce user's login
 
 # === PAST HERE IS (mostly) A TEST ===
-# Set a scheduler to update the IRC, messages sent thru easygui.enterbox
+# Set a scheduler to update the IRC, messages sent thru easygui.enterbox (now raw_input / input)
 x = ''
 while True:
-    #x = easygui.enterbox('Enter a message. Send !quit to exit.','NOS_FILE')
+    #x = easygui.enterbox('Enter a message. Send !quit (or press Cancel) to exit.','NOS_FILE')
     tmr_stop = threading.Event()
     tmr(tmr_stop)
-    x = input(str('>> '))
+    try:
+        x = raw_input(str('>> '))
+    except:
+        x = input(str('>> '))
     if x != '!quit' and x != None:
         if '!list' in x:
             if x == '':
