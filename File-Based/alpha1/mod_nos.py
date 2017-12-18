@@ -203,7 +203,8 @@ sendMsg(1, IRC_FILEPATH) # Announce user's login
 x = ''
 while True:
     #x = easygui.enterbox('Enter a message. Send !quit to exit.','NOS_FILE')
-    tmr(threading.Event())
+    tmr_stop = threading.Event()
+    tmr(tmr_stop)
     x = input(str('>> '))
     if x != '!quit' and x != None:
         if '!list' in x:
@@ -212,7 +213,7 @@ while True:
             else:
                 l_lines(x[6:])
         sendMsg(x, IRC_FILEPATH)
+        tmr_stop.set()
     else:
         sendMsg(0, IRC_FILEPATH)
         sys.exit()
-f_stop.set()
