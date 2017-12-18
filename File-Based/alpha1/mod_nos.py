@@ -71,9 +71,13 @@ def main():
 def l_lines(lines):
     ''' Prints out (lines)# of lines in file '''
     # eventually input ability to specify length of list
+    lns = []
     file = readFile(IRC_FILEPATH)
     for x in range(int(lines)+1):
-        print(dec(file[-x].strip()))
+        lns.append(dec(file[-x].strip()))
+    lns.reverse()
+    for i in lns:
+        print(i)
 
 # LOGIN SCRIPT
 def login():
@@ -204,6 +208,7 @@ sendMsg(1, IRC_FILEPATH) # Announce user's login
 # === PAST HERE IS (mostly) A TEST ===
 # Set a scheduler to update the IRC, messages sent thru easygui.enterbox (now raw_input / input)
 x = ''
+print("Send !quit to exit")
 while True:
     #x = easygui.enterbox('Enter a message. Send !quit (or press Cancel) to exit.','NOS_FILE')
     tmr_stop = threading.Event()
