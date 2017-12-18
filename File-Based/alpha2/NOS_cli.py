@@ -63,7 +63,7 @@ def main():
     # Compare last line in the file to the last line sent
     global lastLine
     lastIrcLine = readFile(IRC_FILEPATH)[-1:][0] # Get the last IRC chat sent
-    if lastLine != lastIrcLine:
+    if (lastLine != lastIrcLine):
         print(dec(lastIrcLine.strip()))
     lastLine = lastIrcLine
     #print("Timer executed")#TEMP
