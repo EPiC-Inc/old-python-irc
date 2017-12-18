@@ -219,7 +219,7 @@ while True:
         x = input(str('>> '))
     if x != '!quit' and x != None:
         if '!list' in x:
-            if x == '':
+            if x[6:] == '':
                 print("specify line amount as argument (ex: !list 10)")
             else:
                 l_lines(x[6:])
