@@ -47,7 +47,7 @@ def sendMsg(msg, filePath):
         fMsg = "A user has left @ "+time.asctime(time.gmtime())+':'+user
     else:
         if ADMIN == 0:
-            fMsg = '['+user+'] '+msg
+            fMsg = '['+user+'@'+time.asctime(time.gmtime())+'] '+msg
         else:
             fMsg = '[(ADMIN) '+user+'@'+time.asctime(time.gmtime())+'] '+msg
     encMsg = enc(fMsg)
