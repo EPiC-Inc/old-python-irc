@@ -11,7 +11,7 @@ enc(usr, key)
 enc(pwd, key)
 '''
 # Import yer stuffs
-import sys, time, random, os, threading, base64
+import sys, time, random, os, threading, base64, webbrowser
 from datetime import datetime
 sys.path.insert(0, 'E:/misc/coding/scripts/easy')
 
@@ -38,39 +38,55 @@ def readFile(filePath): # Get the file readout and close it
 
 def sendMsg(msg, filePath):
     if msg == 1:
-        fMsg = "A user has joined @ "+time.asctime(time.gmtime())+':'+user
+        fMsg = "A user has joined: "+user
     elif msg == 0:
-        fMsg = "A user has left @ "+time.asctime(time.gmtime())+':'+user
+        fMsg = "A user has left: "+user
     else:
         if ADMIN == 0:
-            fMsg = '['+user+'@'+time.asctime(time.gmtime())+'] '+msg
+            fMsg = '['+user+'] '+msg
         else:
-            fMsg = '[(ADMIN) '+user+'@'+time.asctime(time.gmtime())+'] '+msg
+            fMsg = '[(ADMIN) '+user+' '+str(datetime.now())+'] '+msg
     encMsg = enc(fMsg)
     fObj = open(filePath, 'a')
     fObj.write(encMsg+"\n")
     fObj.close()
 
 def sendImg(loc):
+    if os.path.isfile(loc):
+        pass
+    else:
+        print('specify image file location (if local, just type "{file}.jpg"')
+        return
+    global IRC_FILEPATH
+#    msg = 'sent image file; open in browser with !open_image'
+#    sendMsg(msg, IRC_FILEPATH)
     with open(loc, "rb") as img:
         sti = base64.b64encode(img.read())
-        fObj = open(filePath, 'a')
-        fObj.write('img: '+sti+"\n")
+        sti = str('img: '+sti)
+        encSti = enc(sti)
+        fObj = open(IRC_FILEPATH, 'a')
+        fObj.write(encSti+'\n')
         fObj.close()
+        
+def readImg(data):
+    data = base64.b64decode(data)
+    with open('img.jpg', 'wb') as f:
+        f.write(data)
+    f.close()
+    webbrowser.open('img.jpg')
 
 def main():
     ''' This function reads out an IRC file '''
     # Compare last line in the file to the last line sent
     global lastLine
     lastIrcLine = readFile(IRC_FILEPATH)[-1:][0] # Get the last IRC chat sent
-    if (lastLine != lastIrcLine):
+    if lastLine != lastIrcLine:
         print(dec(lastIrcLine.strip()))
     lastLine = lastIrcLine
     #print("Timer executed")#TEMP
     
 def l_lines(lines):
     ''' Prints out (lines)# of lines in file '''
-    # eventually input ability to specify length of list
     lns = []
     file = readFile(IRC_FILEPATH)
     for x in range(int(lines)+1):
@@ -78,7 +94,7 @@ def l_lines(lines):
     lns.reverse()
     for i in lns:
         print(i)
-
+        
 # LOGIN SCRIPT
 def login():
     global ADMIN
@@ -126,26 +142,23 @@ def enc(code, encryption_num=14815):
 
 def dec(code, encryption_num=14815, digits=5):
     ''' DePolymorphs Polymorphed code '''
-    try:
-        final = ''
+    final = ''
 
-        for i in range(0, len(code), digits):
-            symbol = ''
-            for j in range(digits):
-                symbol += code[i+j]
+    for i in range(0, len(code), digits):
+        symbol = ''
+        for j in range(digits):
+            symbol += code[i+j]
 
-            symbol = int(symbol)
-            symbol_num = symbol - encryption_num
-            if (symbol_num != 31) and (symbol_num != 30):
-                symbol = chr(symbol_num)
-                final += symbol
-            elif symbol_num == 30:
-                final += '\t'
-            else:
-                final += '\n'
-        return final
-    except:
-        return "Unable to decode string"
+        symbol = int(symbol)
+        symbol_num = symbol - encryption_num
+        if (symbol_num != 31) and (symbol_num != 30):
+            symbol = chr(symbol_num)
+            final += symbol
+        elif symbol_num == 30:
+            final += '\t'
+        else:
+            final += '\n'
+    return final
 
 def getRandomNum(digits=5):
     ''' Gets a random polymorphic-compatible number with the specified amount of digits '''
@@ -206,25 +219,31 @@ lastLine = readFile(IRC_FILEPATH)[-1:][0]
 sendMsg(1, IRC_FILEPATH) # Announce user's login
 
 # === PAST HERE IS (mostly) A TEST ===
-# Set a scheduler to update the IRC, messages sent thru easygui.enterbox (now raw_input / input)
+# Set a scheduler to update the IRC, messages sent thru easygui.enterbox
 x = ''
-print("Send !quit to exit")
 while True:
-    #x = easygui.enterbox('Enter a message. Send !quit (or press Cancel) to exit.','NOS_FILE')
+    #x = easygui.enterbox('Enter a message. Send !quit to exit.','NOS_FILE')
     tmr_stop = threading.Event()
     tmr(tmr_stop)
-    try:
-        x = raw_input(str('>> '))
-    except:
-        x = input(str('>> '))
+    x = input(str('>> '))
     if x != '!quit' and x != None:
         if '!list' in x:
-            if x[6:] == '':
+            if x == '':
                 print("specify line amount as argument (ex: !list 10)")
             else:
                 l_lines(x[6:])
-        sendMsg(x, IRC_FILEPATH)
-        tmr_stop.set()
+        elif '!open_image' in x:
+            lastIrcLine = readFile(IRC_FILEPATH)[-1:][0] # grabbed from main(), finds image sent (only last msg)
+            if 'img: ' in lastIrcLine:
+                readImg(lastIrcLine[5:-2]) # removes "img: " and "\n" from b64 img
+        elif '!image' in x:
+            sendImg(x[7:])
+        else:
+            sendMsg(x, IRC_FILEPATH)
+            tmr_stop.set()
     else:
         sendMsg(0, IRC_FILEPATH)
         sys.exit()
+#except KeyboardInterrupt:
+#    sendMsg(0, IRC_FILEPATH)
+#    sys.exit()
